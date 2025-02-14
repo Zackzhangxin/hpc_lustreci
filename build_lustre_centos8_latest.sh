@@ -1,13 +1,11 @@
 #!/bin/bash
-echo $(nproc)
-echo $(lsmem)
 set -ex
 shopt -s expand_aliases
 # Build Lustre MASTER with ZFS on CentOS7.3 https://wiki.whamcloud.com/pages/viewpage.action?pageId=54428329
 
 #### LOCAL BUILD ENV
 ### TX2 BUILD
-NPROC=24
+NPROC=12
 USER="$(whoami)"
 ROOT="/home/$USER"
 DIR_HOME="$ROOT/lustre_build"
@@ -159,62 +157,62 @@ fi
 #l_make $DIR_SPL_SRC clean || true
 #l_make $DIR_ZFS_SRC clean || true
 
-if isinstalled 'zfs'; then
-	echo "ZFS INSTALLED : SKIPPING BUILD"
-else
-	# CentOS 8 cannot cope with ;
-	#BuildRequires: %kernel_module_package_buildreqs
-	sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_ZFS_SRC/rpm/redhat/zfs-kmod.spec.in
-	# If you have a "debug kernel", it won't accept CDDL
-	sudo sed -i 's/CDDL/GPL/g' $DIR_ZFS_SRC/META
+#if isinstalled 'zfs'; then
+#	echo "ZFS INSTALLED : SKIPPING BUILD"
+#else
+#	# CentOS 8 cannot cope with ;
+#	#BuildRequires: %kernel_module_package_buildreqs
+#	sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_ZFS_SRC/rpm/redhat/zfs-kmod.spec.in
+#	# If you have a "debug kernel", it won't accept CDDL
+#	sudo sed -i 's/CDDL/GPL/g' $DIR_ZFS_SRC/META
+#
+#	cd $DIR_ZFS_SRC
+#	sh "$DIR_ZFS_SRC/autogen.sh" \
+#		&& $DIR_ZFS_SRC/configure --with-spec=redhat --with-linux=$DIR_KERNEL \
+#		&& l_make $DIR_ZFS_SRC -s -j $NPROC \
+#		&& l_make $DIR_ZFS_SRC -j1 pkg-utils \
+#		&& l_make $DIR_ZFS_SRC -j1 pkg-kmod rpms
+#
+#	mv $DIR_ZFS_SRC/*.rpm $DIR_REPO_ZFS/
+#	sudo createrepo $DIR_REPO
+#	sudo yum clean all
+#	sudo yum update -y || true
+#	sudo yum -y install zfs kmod-zfs-devel libzfs5-devel
+#	echo "zacktest5 $(date +"%Y-%m-%d %H:%M:%S")"
+#	##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
+#fi
 
-	cd $DIR_ZFS_SRC
-	sh "$DIR_ZFS_SRC/autogen.sh" \
-		&& $DIR_ZFS_SRC/configure --with-spec=redhat --with-linux=$DIR_KERNEL \
-		&& l_make $DIR_ZFS_SRC -s -j $NPROC \
-		&& l_make $DIR_ZFS_SRC -j1 pkg-utils \
-		&& l_make $DIR_ZFS_SRC -j1 pkg-kmod rpms
 
-	mv $DIR_ZFS_SRC/*.rpm $DIR_REPO_ZFS/
-	sudo createrepo $DIR_REPO
-	sudo yum clean all
-	sudo yum update -y || true
-	sudo yum -y install zfs kmod-zfs-devel libzfs5-devel
-	echo "zacktest5 $(date +"%Y-%m-%d %H:%M:%S")"
-	##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
-fi
-
-
-
-if ! isinstalled 'e2fsprogs'; then
-	echo "E2FSPROGS INSTALLED : SKIPPING BUILD"
-else
-	# Build e2fsprogs
-#  echo "zacktest6 $(date +"%Y-%m-%d %H:%M:%S")"
-	git clone -b master-lustre git://git.whamcloud.com/tools/e2fsprogs.git $DIR_E2PROGS_SRC
-
-	# Get packaging
-	wget -P $DIR_E2PROGS $E2FSPROGS_PACKAGING_URL
-	tar --exclude "debian/changelog" -xf "$DIR_E2PROGS/$(basename $E2FSPROGS_PACKAGING_URL)"
-
-	# e2fsprogs lustre hack
-	sed -i 's/ext2_types-wrapper.h$//g' $DIR_E2PROGS_SRC/lib/ext2fs/Makefile.in
-
-	cd $DIR_E2PROGS_SRC
-	sh $DIR_E2PROGS_SRC/configure \
-		&& l_make $DIR_E2PROGS_SRC rpm
-	#	&& dpkg-buildpackage -b -us -uc
-
-	# Install e2fsprogs packages
-	mv $DIR_RPMBUILD/*.rpm $DIR_REPO_E2FSPROGS/
-	sudo createrepo $DIR_REPO
-	sudo yum clean all
-	sudo yum update -y || true
-	sudo yum -y --enablerepo='lustre_repo' install e2fsprogs
-#	echo "zacktest7 $(date +"%Y-%m-%d %H:%M:%S")"
-
-fi
-# for file in $DIR_E2PROGS/*.deb; do sudo gdebi -q --non-interactive $file; done
+#
+#if ! isinstalled 'e2fsprogs'; then
+#	echo "E2FSPROGS INSTALLED : SKIPPING BUILD"
+#else
+#	# Build e2fsprogs
+##  echo "zacktest6 $(date +"%Y-%m-%d %H:%M:%S")"
+#	git clone -b master-lustre git://git.whamcloud.com/tools/e2fsprogs.git $DIR_E2PROGS_SRC
+#
+#	# Get packaging
+#	wget -P $DIR_E2PROGS $E2FSPROGS_PACKAGING_URL
+#	tar --exclude "debian/changelog" -xf "$DIR_E2PROGS/$(basename $E2FSPROGS_PACKAGING_URL)"
+#
+#	# e2fsprogs lustre hack
+#	sed -i 's/ext2_types-wrapper.h$//g' $DIR_E2PROGS_SRC/lib/ext2fs/Makefile.in
+#
+#	cd $DIR_E2PROGS_SRC
+#	sh $DIR_E2PROGS_SRC/configure \
+#		&& l_make $DIR_E2PROGS_SRC rpm
+#	#	&& dpkg-buildpackage -b -us -uc
+#
+#	# Install e2fsprogs packages
+#	mv $DIR_RPMBUILD/*.rpm $DIR_REPO_E2FSPROGS/
+#	sudo createrepo $DIR_REPO
+#	sudo yum clean all
+#	sudo yum update -y || true
+#	sudo yum -y --enablerepo='lustre_repo' install e2fsprogs
+##	echo "zacktest7 $(date +"%Y-%m-%d %H:%M:%S")"
+#
+#fi
+## for file in $DIR_E2PROGS/*.deb; do sudo gdebi -q --non-interactive $file; done
 
 # Get Lustre source
 git clone git://git.whamcloud.com/fs/lustre-release.git $DIR_LUSTRE_SRC || true
@@ -236,16 +234,16 @@ else
 	echo "zacktest9 $(date +"%Y-%m-%d %H:%M:%S")"
 fi
 
-# Build Lustre-server with ZFS and LDISKFS Support
-cd $DIR_LUSTRE_SRC
-sh "$DIR_LUSTRE_SRC/autogen.sh" \
-	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
-		--enable-ldiskfs \
-  		--with-zfs="$DIR_ZFS_SRC" \
-		--with-linux="$DIR_KERNEL" \
-       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
-echo "zacktest10 $(date +"%Y-%m-%d %H:%M:%S")"
-echo "###########LUSTRE BUILT#################"
+## Build Lustre-server with ZFS and LDISKFS Support
+#cd $DIR_LUSTRE_SRC
+#sh "$DIR_LUSTRE_SRC/autogen.sh" \
+#	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
+#		--enable-ldiskfs \
+#  		--with-zfs="$DIR_ZFS_SRC" \
+#		--with-linux="$DIR_KERNEL" \
+#       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
+#echo "zacktest10 $(date +"%Y-%m-%d %H:%M:%S")"
+#echo "###########LUSTRE BUILT#################"
 
 mv $DIR_LUSTRE_SRC/*.rpm $DIR_REPO_LUSTRE/
 sudo createrepo $DIR_REPO
