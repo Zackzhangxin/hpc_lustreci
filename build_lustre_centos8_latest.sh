@@ -48,7 +48,7 @@ LUSTRE_BRANCH="lustre-arm"
 #### BUILD
 # DIR_KERNEL="/home/$USER/rpmbuild/BUILD/kernel-4.18.0-80.11.2.el8_0/linux-4.18.0-80.11.2.el8.x86_64/"
 #DIR_KERNEL="/usr/src/kernels/4.18.0-553.33.1.el8_10.x86_64/"
-DIR_KERNEL="/usr/src/kernels/4.18.0-553.37.1.el8_10.x86_64/"
+DIR_KERNEL="/usr/src/kernels/4.18.0-553.40.1.el8_10.x86_64/"
 
 mkdir -p $DIR_HOME
 mkdir -p $DIR_REPO_LUSTRE
