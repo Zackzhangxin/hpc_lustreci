@@ -1,4 +1,5 @@
 #!/bin/bash
+echo $(nproc)
 set -ex
 shopt -s expand_aliases
 # Build Lustre MASTER with ZFS on CentOS7.3 https://wiki.whamcloud.com/pages/viewpage.action?pageId=54428329
@@ -157,30 +158,30 @@ fi
 #l_make $DIR_SPL_SRC clean || true
 #l_make $DIR_ZFS_SRC clean || true
 
-#if isinstalled 'zfs'; then
-#	echo "ZFS INSTALLED : SKIPPING BUILD"
-#else
-#	# CentOS 8 cannot cope with ;
-#	#BuildRequires: %kernel_module_package_buildreqs
-#	sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_ZFS_SRC/rpm/redhat/zfs-kmod.spec.in
-#	# If you have a "debug kernel", it won't accept CDDL
-#	sudo sed -i 's/CDDL/GPL/g' $DIR_ZFS_SRC/META
-#
-#	cd $DIR_ZFS_SRC
-#	sh "$DIR_ZFS_SRC/autogen.sh" \
-#		&& $DIR_ZFS_SRC/configure --with-spec=redhat --with-linux=$DIR_KERNEL \
-#		&& l_make $DIR_ZFS_SRC -s -j $NPROC \
-#		&& l_make $DIR_ZFS_SRC -j1 pkg-utils \
-#		&& l_make $DIR_ZFS_SRC -j1 pkg-kmod rpms
-#
-#	mv $DIR_ZFS_SRC/*.rpm $DIR_REPO_ZFS/
-#	sudo createrepo $DIR_REPO
-#	sudo yum clean all
-#	sudo yum update -y || true
-#	sudo yum -y install zfs kmod-zfs-devel libzfs5-devel
-#	echo "zacktest5 $(date +"%Y-%m-%d %H:%M:%S")"
-#	##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
-#fi
+if isinstalled 'zfs'; then
+	echo "ZFS INSTALLED : SKIPPING BUILD"
+else
+	# CentOS 8 cannot cope with ;
+	#BuildRequires: %kernel_module_package_buildreqs
+	sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_ZFS_SRC/rpm/redhat/zfs-kmod.spec.in
+	# If you have a "debug kernel", it won't accept CDDL
+	sudo sed -i 's/CDDL/GPL/g' $DIR_ZFS_SRC/META
+
+	cd $DIR_ZFS_SRC
+	sh "$DIR_ZFS_SRC/autogen.sh" \
+		&& $DIR_ZFS_SRC/configure --with-spec=redhat --with-linux=$DIR_KERNEL \
+		&& l_make $DIR_ZFS_SRC -s -j $NPROC \
+		&& l_make $DIR_ZFS_SRC -j1 pkg-utils \
+		&& l_make $DIR_ZFS_SRC -j1 pkg-kmod rpms
+
+	mv $DIR_ZFS_SRC/*.rpm $DIR_REPO_ZFS/
+	sudo createrepo $DIR_REPO
+	sudo yum clean all
+	sudo yum update -y || true
+	sudo yum -y install zfs kmod-zfs-devel libzfs5-devel
+	echo "zacktest5 $(date +"%Y-%m-%d %H:%M:%S")"
+	##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
+fi
 
 
 #
@@ -222,28 +223,28 @@ git clone git://git.whamcloud.com/fs/lustre-release.git $DIR_LUSTRE_SRC || true
 #BuildRequires: %kernel_module_package_buildreqs
 sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_LUSTRE_SRC/lustre.spec.in
 
-# Build Lustre-client
-if isinstalled 'lustre-client-tests'; then
-	echo "LUSTRE CLIENT TESTS INSTALLED: SKIPPING BUILD"
-else
-  echo "zacktest8 $(date +"%Y-%m-%d %H:%M:%S")"
-	cd $DIR_LUSTRE_SRC
-	sh "$DIR_LUSTRE_SRC/autogen.sh" \
-		&& $DIR_LUSTRE_SRC/configure --disable-server \
-		&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
-	echo "zacktest9 $(date +"%Y-%m-%d %H:%M:%S")"
-fi
+## Build Lustre-client
+#if isinstalled 'lustre-client-tests'; then
+#	echo "LUSTRE CLIENT TESTS INSTALLED: SKIPPING BUILD"
+#else
+#  echo "zacktest8 $(date +"%Y-%m-%d %H:%M:%S")"
+#	cd $DIR_LUSTRE_SRC
+#	sh "$DIR_LUSTRE_SRC/autogen.sh" \
+#		&& $DIR_LUSTRE_SRC/configure --disable-server \
+#		&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
+#	echo "zacktest9 $(date +"%Y-%m-%d %H:%M:%S")"
+#fi
 
-## Build Lustre-server with ZFS and LDISKFS Support
-#cd $DIR_LUSTRE_SRC
-#sh "$DIR_LUSTRE_SRC/autogen.sh" \
-#	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
-#		--enable-ldiskfs \
-#  		--with-zfs="$DIR_ZFS_SRC" \
-#		--with-linux="$DIR_KERNEL" \
-#       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
-#echo "zacktest10 $(date +"%Y-%m-%d %H:%M:%S")"
-#echo "###########LUSTRE BUILT#################"
+# Build Lustre-server with ZFS and LDISKFS Support
+cd $DIR_LUSTRE_SRC
+sh "$DIR_LUSTRE_SRC/autogen.sh" \
+	&& $DIR_LUSTRE_SRC/configure --enable-server --enable-modules \
+		--enable-ldiskfs \
+  		--with-zfs="$DIR_ZFS_SRC" \
+		--with-linux="$DIR_KERNEL" \
+       	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
+echo "zacktest10 $(date +"%Y-%m-%d %H:%M:%S")"
+echo "###########LUSTRE BUILT#################"
 
 mv $DIR_LUSTRE_SRC/*.rpm $DIR_REPO_LUSTRE/
 sudo createrepo $DIR_REPO
