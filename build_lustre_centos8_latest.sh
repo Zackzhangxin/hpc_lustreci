@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo "zacktest1 $(date +"%Y-%m-%d %H:%M:%S")"
 set -ex
 shopt -s expand_aliases
 # Build Lustre MASTER with ZFS on CentOS7.3 https://wiki.whamcloud.com/pages/viewpage.action?pageId=54428329
@@ -10,7 +10,7 @@ NPROC=12
 USER="$(whoami)"
 ROOT="/home/$USER"
 DIR_HOME="$ROOT/lustre_build"
-alias l_make="$MAKE_ENV make -C"  
+alias l_make="$MAKE_ENV make -C"
 
 ZFS_VERSION='2.1.15'
 ZFS_BRANCH='2.1.15'
@@ -75,7 +75,7 @@ function isinstalled {
 # Kernel spec deps:
 # sudo yum install --enablerepo="PowerTools" -y audit-libs-devel binutils-devel elfutils-devel java-devel kabi-dw ncurses-devel newt-devel numactl-devel openssl-devel pciutils-devel perl-devel python3-devel python3-docutils xmlto xz-devel zlib-devel perl-ExtUtils-Embed bc net-tools
 # pdsh deps : readline-devel
-
+echo "zacktest2 $(date +"%Y-%m-%d %H:%M:%S")"
 cat << EOF > "$DIR_HOME/lustre.repo"
 [lustre_repo]
 name=Lustre repo
@@ -87,7 +87,7 @@ EOF
 sudo mv "$DIR_HOME/lustre.repo" "/etc/yum.repos.d/"
 sudo createrepo $DIR_REPO
 sudo yum update -y
-
+echo "zacktest3 $(date +"%Y-%m-%d %H:%M:%S")"
 cat << EOF > "$DIR_HOME/CentOS-PowerTools.repo"
 [PowerTools]
 name=CentOS-$releasever - PowerTools
@@ -105,9 +105,9 @@ sudo yum -y install kernel-abi-whitelists kernel-rpm-macros kernel-devel || true
 
 yum install -y ncompress python3-packaging
 
-# libnl-3-dev libnl-genl-3-dev 
-# For Server 
-yum install -y libnl3-cli libnl3-devel 
+# libnl-3-dev libnl-genl-3-dev
+# For Server
+yum install -y libnl3-cli libnl3-devel
 
 
 sudo yum -y install xmlto asciidoc elfutils-libelf-devel zlib-devel binutils-devel newt-devel python3-devel \
@@ -118,15 +118,15 @@ sudo yum -y install xmlto asciidoc elfutils-libelf-devel zlib-devel binutils-dev
 			parted lsscsi ksh openssl-devel elfutils-libelf-devel createrepo \
 			vim wget libaio-devel redhat-lsb-core \
 			texinfo libyaml-devel libffi-devel libtirpc-devel lua tcl lua-json
-                        # 
+                        #
 
 sudo yum -y install --enablerepo="PowerTools" python3 python3-devel python3-setuptools python3-cffi libyaml-devel libyaml libtool
 sudo yum -y install epel-release
 sudo yum -y install dbench
 
 yum -y install libmount libmount-devel
-
-#sudo yum -y --exclude=kernel* install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/aarch64/ohpc-release-1.3-1.el7.aarch64.rpm || true 
+echo "zacktest4 $(date +"%Y-%m-%d %H:%M:%S")"
+#sudo yum -y --exclude=kernel* install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/aarch64/ohpc-release-1.3-1.el7.aarch64.rpm || true
 #sudo yum -y update
 #sudo yum -y install Lmod
 
@@ -160,7 +160,7 @@ fi
 if isinstalled 'zfs'; then
 	echo "ZFS INSTALLED : SKIPPING BUILD"
 else
-	# CentOS 8 cannot cope with ; 
+	# CentOS 8 cannot cope with ;
 	#BuildRequires: %kernel_module_package_buildreqs
 	sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_ZFS_SRC/rpm/redhat/zfs-kmod.spec.in
 	# If you have a "debug kernel", it won't accept CDDL
@@ -178,6 +178,7 @@ else
 	sudo yum clean all
 	sudo yum update -y || true
 	sudo yum -y install zfs kmod-zfs-devel libzfs5-devel
+	echo "zacktest5 $(date +"%Y-%m-%d %H:%M:%S")"
 	##for file in $DIR_ZFS_SRC/*.deb; do sudo gdebi -q --non-interactive $file; done
 fi
 
@@ -187,7 +188,7 @@ if ! isinstalled 'e2fsprogs'; then
 	echo "E2FSPROGS INSTALLED : SKIPPING BUILD"
 else
 	# Build e2fsprogs
-
+  echo "zacktest6 $(date +"%Y-%m-%d %H:%M:%S")"
 	git clone -b master-lustre git://git.whamcloud.com/tools/e2fsprogs.git $DIR_E2PROGS_SRC
 
 	# Get packaging
@@ -200,7 +201,7 @@ else
 	cd $DIR_E2PROGS_SRC
 	sh $DIR_E2PROGS_SRC/configure \
 		&& l_make $DIR_E2PROGS_SRC rpm
-	#	&& dpkg-buildpackage -b -us -uc 
+	#	&& dpkg-buildpackage -b -us -uc
 
 	# Install e2fsprogs packages
 	mv $DIR_RPMBUILD/*.rpm $DIR_REPO_E2FSPROGS/
@@ -208,6 +209,7 @@ else
 	sudo yum clean all
 	sudo yum update -y || true
 	sudo yum -y --enablerepo='lustre_repo' install e2fsprogs
+	echo "zacktest7 $(date +"%Y-%m-%d %H:%M:%S")"
 
 fi
 # for file in $DIR_E2PROGS/*.deb; do sudo gdebi -q --non-interactive $file; done
@@ -216,7 +218,7 @@ fi
 git clone git://git.whamcloud.com/fs/lustre-release.git $DIR_LUSTRE_SRC || true
 #git --git-dir $DIR_LUSTRE_SRC reset --hard && git --git-dir $DIR_LUSTRE_SRC clean -dfx || true
 
-# CentOS 8 cannot cope with ; 
+# CentOS 8 cannot cope with ;
 #BuildRequires: %kernel_module_package_buildreqs
 sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %kernel_module_package_buildreqs/g' $DIR_LUSTRE_SRC/lustre.spec.in
 
@@ -224,10 +226,12 @@ sed -i 's/BuildRequires: %kernel_module_package_buildreqs/##BadBuildRequires: %k
 if isinstalled 'lustre-client-tests'; then
 	echo "LUSTRE CLIENT TESTS INSTALLED: SKIPPING BUILD"
 else
+  echo "zacktest8 $(date +"%Y-%m-%d %H:%M:%S")"
 	cd $DIR_LUSTRE_SRC
 	sh "$DIR_LUSTRE_SRC/autogen.sh" \
 		&& $DIR_LUSTRE_SRC/configure --disable-server \
 		&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
+	echo "zacktest9 $(date +"%Y-%m-%d %H:%M:%S")"
 fi
 
 # Build Lustre-server with ZFS and LDISKFS Support
@@ -238,14 +242,14 @@ sh "$DIR_LUSTRE_SRC/autogen.sh" \
   		--with-zfs="$DIR_ZFS_SRC" \
 		--with-linux="$DIR_KERNEL" \
        	&& l_make $DIR_LUSTRE_SRC rpms -j $NPROC
-
+echo "zacktest10 $(date +"%Y-%m-%d %H:%M:%S")"
 echo "###########LUSTRE BUILT#################"
 
 mv $DIR_LUSTRE_SRC/*.rpm $DIR_REPO_LUSTRE/
 sudo createrepo $DIR_REPO
 sudo yum clean all
 sudo yum update -y || true
-
+echo "zacktest11 $(date +"%Y-%m-%d %H:%M:%S")"
 # TODO: Tests
 # For ZFS: //tests/zfs-test.sh -vx (takes two hours to run)
 # For Lustre : FSTYPE=zfs //llmount.sh and llmountcleanup.sh going through is the first step (but needs multiple disk/block devices)
