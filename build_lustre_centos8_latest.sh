@@ -1,12 +1,13 @@
 #!/bin/bash
 echo $(nproc)
+echo $(lsmem)
 set -ex
 shopt -s expand_aliases
 # Build Lustre MASTER with ZFS on CentOS7.3 https://wiki.whamcloud.com/pages/viewpage.action?pageId=54428329
 
 #### LOCAL BUILD ENV
 ### TX2 BUILD
-NPROC=12
+NPROC=24
 USER="$(whoami)"
 ROOT="/home/$USER"
 DIR_HOME="$ROOT/lustre_build"

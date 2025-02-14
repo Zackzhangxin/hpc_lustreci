@@ -1,4 +1,4 @@
-name: Tests on Rocky Linux 8 123
+name: Tests on Rocky Linux 8 1234
 
 # Trigger the workflow on push or pull request
 on: [push, pull_request]
