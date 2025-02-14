@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "zacktest1 $(date +"%Y-%m-%d %H:%M:%S")"
+
 set -ex
 shopt -s expand_aliases
 # Build Lustre MASTER with ZFS on CentOS7.3 https://wiki.whamcloud.com/pages/viewpage.action?pageId=54428329
@@ -125,6 +125,7 @@ sudo yum -y install epel-release
 sudo yum -y install dbench
 
 yum -y install libmount libmount-devel
+yum -y install kernel-devel
 echo "zacktest4 $(date +"%Y-%m-%d %H:%M:%S")"
 #sudo yum -y --exclude=kernel* install http://build.openhpc.community/OpenHPC:/1.3/CentOS_7/aarch64/ohpc-release-1.3-1.el7.aarch64.rpm || true
 #sudo yum -y update
